@@ -25,22 +25,26 @@ function injectStyles() {
     }
 
     .db-folder-list-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
     //   margin: 5px 10px;
-      padding: 6px;
-      background: #171717;
-      border-radius: 4px;
-      font-size: 14px;
+        padding: 6px;
+        background: #262626;
+        border-radius: 5px;
+        font-size: 14px;
     }
 
     #db-prompt-modal-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      background: rgba(0, 0, 0, 0.6);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
     }
 
     #db-prompt-modal {
@@ -123,10 +127,8 @@ function showFolderModal(callback) {
     const modal = document.createElement('div');
     modal.id = 'db-prompt-modal';
 
-    modal.innerHTML = `
-    <input type="text" placeholder="Folder name" id="prompt-folder-input" />
-    <button id="prompt-create-folder">Create</button>
-  `;
+    modal.innerHTML = `<input type="text" placeholder="Folder name" id="prompt-folder-input" />
+                        <button id="prompt-create-folder">Create</button>`;
 
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
@@ -215,33 +217,65 @@ function renderFoldersWithPrompts(container) {
         const folderPrompts = data.folderPrompts || {};
 
         folders.forEach(folderName => {
-            // Folder header
-            const folderItem = document.createElement('div');
-            folderItem.className = 'db-folder-list-item';
-            folderItem.textContent = folderName;
+            // Folder container
+            const folderWrapper = document.createElement('div');
+            folderWrapper.className = 'mt-2';
 
-            // Prompt list container (collapsible)
+            // Folder header
+            const folderHeader = document.createElement('div');
+            folderHeader.className = 'db-folder-list-item';
+
+            const folderTitle = document.createElement('span');
+            folderTitle.textContent = folderName;
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = '🗑️';
+            deleteBtn.className = 'text-red-500 hover:text-red-700 ml-2';
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // prevent toggle on delete click
+
+                if (!confirm(`Delete folder "${folderName}" and all its prompts?`)) return;
+
+                // Remove from storage
+                const updatedFolders = folders.filter(f => f !== folderName);
+                delete folderPrompts[folderName];
+
+                chrome.storage.local.set({
+                    folders: updatedFolders,
+                    folderPrompts: folderPrompts
+                }, () => {
+                    // Remove from DOM
+                    folderWrapper.remove();
+                });
+            });
+
+            folderHeader.appendChild(folderTitle);
+            folderHeader.appendChild(deleteBtn);
+
+            // Prompt list (collapsible)
             const promptList = document.createElement('div');
             promptList.className = 'ml-4 mt-1 hidden';
 
             const prompts = folderPrompts[folderName] || [];
             prompts.forEach(prompt => {
                 const link = document.createElement('a');
-                link.href = '#'; // You can update this to point to a saved ChatGPT session URL if you store that too.
+                link.href = '#'; // Optional: use saved link if you store it
                 link.textContent = prompt;
                 link.className = 'block text-blue-600 hover:underline text-sm my-1';
                 promptList.appendChild(link);
             });
 
-            folderItem.addEventListener('click', () => {
+            folderHeader.addEventListener('click', () => {
                 promptList.classList.toggle('hidden');
             });
 
-            container.appendChild(folderItem);
-            container.appendChild(promptList);
+            folderWrapper.appendChild(folderHeader);
+            folderWrapper.appendChild(promptList);
+            container.appendChild(folderWrapper);
         });
     });
 }
+
 
 
 function waitForSidebarAndInjectButton() {
