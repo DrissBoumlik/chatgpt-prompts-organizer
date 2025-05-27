@@ -115,7 +115,14 @@ function injectStyles() {
         margin-left: 0.5rem;
         font-size: 0.875rem; /* 14px */
     }
-  `;
+    .db-prompt-item {
+        margin-left: 1rem;
+        margin-top: 0.25rem;
+        display: none;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    `;
     document.head.appendChild(style);
 }
 
@@ -138,6 +145,7 @@ function showFolderModal() {
         if (name) {
             addFolderIfNotExists(name)
             document.body.removeChild(overlay);
+            renderFolders(document.getElementById('db-folders-with-prompts'));
         }
     });
 
@@ -324,7 +332,7 @@ function renderFolders(container) {
 
             // Prompts container (hidden initially)
             const promptList = document.createElement('div');
-            promptList.className = 'ml-4 mt-1 hidden flex flex-col space-y-1';
+            promptList.className = 'db-prompt-item';
 
             folder.prompts.forEach(p => {
                 const link = document.createElement('a');
