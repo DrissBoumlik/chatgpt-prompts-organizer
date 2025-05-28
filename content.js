@@ -53,6 +53,11 @@ function injectStyles() {
         white-space: nowrap;
         overflow: hidden;
     }
+        
+    .db-folder-actions {
+        display: flex;
+        gap: 5px;
+    }
 
     #db-prompt-modal-overlay {
         position: fixed;
@@ -287,12 +292,46 @@ function renderFolders() {
             folderDiv.className = 'db-folder-item-container';
             
             // Folder header with toggle
-            const header = document.createElement('div');
-            header.className = 'db-folder-list-item';
+            const folderItem = document.createElement('div');
+            folderItem.className = 'db-folder-list-item';
 
             const title = document.createElement('span');
             title.className = "pointer"
             title.textContent = folder.folderName;
+            const editFolderNameBtn = document.createElement('span');
+            editFolderNameBtn.className = "pointer"
+            editFolderNameBtn.textContent = '✏️';
+            editFolderNameBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const folderNameElement = e.target.parentNode.parentNode.querySelector('span')
+                if (folderNameElement.getAttribute('contenteditable') === 'true') {
+                    editFolderNameBtn.textContent = '✏️';
+                    console.log("Submitting folder name change to", folderNameElement.textContent);
+                    folderNameElement.setAttribute('contenteditable', false);
+                    const newFolderName = folderNameElement.textContent.trim();
+                    if (! newFolderName || newFolderName === folder.folderName) {
+                        alert("Folder name cannot be empty or unchanged.");
+                        return;
+                    }
+                    chrome.storage.local.get(['folders'], (result) => {
+                        let folders = result.folders || [];
+                        folders = folders.map(f => {
+                            if (f.folderName === folder.folderName) {
+                                f.folderName = newFolderName;
+                            }
+                            return f;
+                        });
+                        chrome.storage.local.set({ folders }, () => {
+                            renderFolders();
+                        });
+                    });                    
+                } else {
+                    editFolderNameBtn.textContent = '💾';
+                    console.log("Editing folder name");
+                    folderNameElement.setAttribute('contenteditable', true)
+                    folderNameElement.focus();
+                }
+            });
             const trashIcon = document.createElement('span');
             trashIcon.className = "pointer"
             trashIcon.textContent = '🗑️';
@@ -306,9 +345,14 @@ function renderFolders() {
                     });
                 });
             });
+            
+            const folderActions = document.createElement('div');
+            folderActions.className = 'db-folder-actions';
+            folderActions.appendChild(editFolderNameBtn);
+            folderActions.appendChild(trashIcon);
 
-            header.appendChild(title);
-            header.appendChild(trashIcon);
+            folderItem.appendChild(title);
+            folderItem.appendChild(folderActions);
 
             // Prompts container (hidden initially)
             const promptList = document.createElement('div');
@@ -361,7 +405,7 @@ function renderFolders() {
                 });
             });
 
-            folderDiv.appendChild(header);
+            folderDiv.appendChild(folderItem);
             folderDiv.appendChild(promptList);
             container.appendChild(folderDiv);
         });
