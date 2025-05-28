@@ -40,7 +40,7 @@ function injectStyles() {
         justify-content: space-between;
         align-items: center;
     //   margin: 5px 10px;
-        padding: 6px;
+        padding: 4px 8px;
         background: #262626;
         border-radius: 5px;
         font-size: 14px;
@@ -114,7 +114,9 @@ function injectStyles() {
         margin-bottom: 0.5rem;
     }
     .db-folder-list-modal-btn {
-        display: block;
+        display: flex;
+        cursor: pointer;
+        justify-content: space-between;
         width: 100%;
         text-align: left;
         padding-left: 1rem;
@@ -124,6 +126,12 @@ function injectStyles() {
         border-radius: 5px;
         &:hover {
             background-color: #5e5e5e;
+        }
+        span {
+            display: block;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
         }
     }
     .db-folder-icon {
@@ -148,16 +156,122 @@ function injectStyles() {
             background: #262626;
         }
     }
+    .db-folder-list-modal-buttons {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 1rem;
+        button {
+            border: 1px solid #9d9d9d;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            &:hover {
+                background: #7a7a7a;
+            }
+        }
+    }
     `;
     document.head.appendChild(style);
 }
 
 
 
+function showFolderPicker(folders, callback) {
+    const overlay = document.createElement('div');
+    overlay.className = 'db-folder-list-modal-overlay';
+
+    const modal = document.createElement('div');
+    modal.className = 'db-folder-list-modal';
+
+    const title = document.createElement('h2');
+    title.className = 'db-folder-list-modal-header';
+    title.textContent = 'Choose Folder';
+    modal.appendChild(title);
+
+    folders.forEach(folder => {
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.setAttribute('data-folder-name', folder.folderName);
+        checkbox.id = `folder-${folder.folderName}`;
+        const text = document.createElement('span');
+        text.textContent = folder.folderName;
+        const label = document.createElement('label');
+        label.className = 'db-folder-list-modal-btn';
+        label.setAttribute('for', `folder-${folder.folderName}`);
+        label.appendChild(text);
+        label.appendChild(checkbox);
+        modal.appendChild(label);
+    });
+    
+    
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'Close';
+    closeButton.addEventListener('click', () => {
+        overlay.remove();
+    });
+    
+    const addButton = document.createElement('button');
+    addButton.textContent = 'Submit';
+    addButton.addEventListener('click', (e) => {
+         document.querySelectorAll('.db-folder-list-modal input[type="checkbox"]:checked').forEach((checkbox) => {
+            const folderName = checkbox.getAttribute('data-folder-name');
+            // Add prompt to selected folder
+            callback(folderName);
+            // Close modal
+            overlay.remove();
+        });
+    });
+    
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.className = 'db-folder-list-modal-buttons';
+    buttonsContainer.appendChild(closeButton);
+    buttonsContainer.appendChild(addButton);
+    modal.appendChild(buttonsContainer);
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+}
+
+function observeSidebarPrompts(sidebar) {
+    const observer = new MutationObserver(() => {
+        const promptItems = sidebar.querySelectorAll('a');
+
+        promptItems.forEach((item) => {
+            if (item.querySelector('.db-folder-icon')) return;
+
+            const folderBtn = document.createElement('button');
+            folderBtn.innerText = '📁';
+            folderBtn.className = 'db-folder-icon';
+
+            folderBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                chrome.storage.local.get(['folders'], (data) => {
+                    const folders = data.folders || [];
+                    const prompt = {
+                        name: item.textContent.trim(),
+                        link: item.getAttribute('href'),
+                    };
+                    showFolderPicker(folders, (folderName) => {
+                        addPromptToFolder(folderName, prompt);
+                        chrome.storage.local.set({ folders }, () => {
+                            renderFolders(); // Re-render folders after adding prompt
+                        });
+                    });
+                });
+            });
+
+            item.appendChild(folderBtn);
+        });
+    });
+
+    observer.observe(sidebar, { childList: true, subtree: true });
+}
 
 
-
-function renderFolders() {
+function renderFolders(openedFolders = []) {
 
     const container = document.getElementById('db-folders');
     chrome.storage.local.get(['folders'], (result) => {
@@ -185,7 +299,7 @@ function renderFolders() {
                     let folders = result.folders || [];
                     folders = folders.filter(f => f.folderName !== folder.folderName);
                     chrome.storage.local.set({ folders }, () => {
-                        renderFolders();
+                        renderFolders([folder.folderName]);
                     });
                 });
             });
@@ -195,7 +309,10 @@ function renderFolders() {
 
             // Prompts container (hidden initially)
             const promptList = document.createElement('div');
-            promptList.className = 'db-prompt-item hidden';
+            promptList.className = 'db-prompt-item';
+            if (! openedFolders.includes(folder.folderName)) {
+                promptList.classList.add('hidden');
+            }
 
             folder.prompts.forEach(prompt => {
                 const link = document.createElement('a');
@@ -214,7 +331,7 @@ function renderFolders() {
                             if (f.folderName === folder.folderName) {
                                 f.prompts = f.prompts.filter(p => p.link !== prompt.link);
                                 chrome.storage.local.set({ folders }, () => {
-                                    renderFolders();
+                                    renderFolders([folder.folderName]);
                                 });
                             }
                         });
@@ -293,29 +410,21 @@ function addFolderIfNotExists(folderName, callback) {
     });
 }
 
-function addPromptToFolder(folderName, prompt, callback) {
+function addPromptToFolder(folderName, prompt) {
     chrome.storage.local.get(['folders'], (result) => {
         let folders = result.folders || [];
 
         // Find folder
         const folder = folders.find(f => f.folderName === folderName);
 
-        if (!folder) {
-            // Folder not found, optionally create it then add prompt
-            folders.push({
-                folderName,
-                prompts: [{ name: prompt.promptName, link: prompt.promptLink }]
-            });
-        } else {
-            // Check if prompt exists in folder already (by name & link)
-            const exists = folder.prompts.some(p => p.name === prompt.promptName && p.link === prompt.promptLink);
-            if (!exists) {
-                folder.prompts.push({ name: prompt.promptName, link: prompt.promptLink });
-            }
+        // Check if prompt exists in folder already (by name & link)
+        const exists = folder.prompts.some(p => p.link === prompt.link);
+        if (! exists) {
+            folder.prompts.push({ name: prompt.name, link: prompt.link });
         }
 
         chrome.storage.local.set({ folders }, () => {
-            if (callback) callback(folders);
+            renderFolders(); // Re-render folders after adding prompt
         });
     });
 }
@@ -359,10 +468,10 @@ function waitForSidebarAndInjectButton() {
         renderFolders();
         
         // DELETE LATER
-        dummyDate();
+        // dummyDate();
 
         // ✅ Watch for prompt items being added to the sidebar
-        // observeSidebarPrompts(sidebar);
+        observeSidebarPrompts(sidebar);
 
     }, 500);
 }
