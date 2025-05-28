@@ -406,13 +406,11 @@ function addFolderIfNotExists(folderName, callback) {
     chrome.storage.local.get(['folders'], (result) => {
         let folders = result.folders || [];
 
-        if (!folders.find(f => f.folderName === folderName)) {
+        if (! folders.find(f => f.folderName === folderName)) {
             folders.push({ folderName, prompts: [] });
             chrome.storage.local.set({ folders }, () => {
-                if (callback) callback(folders);
+                renderFolders();
             });
-        } else {
-            if (callback) callback(folders);
         }
     });
 }
@@ -426,6 +424,35 @@ function addPromptToFolder(folderName, prompt, folders) {
     return folders;
 }
 
+function showFolderModal() {
+    // Create modal elements
+    const overlay = document.createElement('div');
+    overlay.id = 'db-prompt-modal-overlay';
+
+    const modal = document.createElement('div');
+    modal.id = 'db-prompt-modal';
+
+    modal.innerHTML = `<input type="text" placeholder="Folder name" id="prompt-folder-input" />
+                        <button id="prompt-create-folder">Create</button>`;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    document.getElementById('prompt-create-folder').addEventListener('click', () => {
+        const name = document.getElementById('prompt-folder-input').value.trim();
+        if (name) {
+            addFolderIfNotExists(name)
+            document.body.removeChild(overlay);
+            // renderFolders(document.getElementById('db-folders-with-prompts'));
+        }
+    });
+
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            document.body.removeChild(overlay);
+        }
+    });
+}
 
 
 function waitForSidebarAndInjectButton() {
@@ -436,10 +463,6 @@ function waitForSidebarAndInjectButton() {
             return;
         }
         
-        // DELETE LATER
-        if (document.querySelector('.folders-container')) {
-            document.querySelector('.folders-container').remove();
-        }
 
         clearInterval(checkInterval);
         injectStyles();
@@ -450,6 +473,7 @@ function waitForSidebarAndInjectButton() {
 
         button.addEventListener('click', () => {
             // Show prompt to enter folder name
+            showFolderModal();
         });
 
         const foldersWrapper = document.createElement('div');
