@@ -183,6 +183,12 @@ function injectStyles() {
     document.head.appendChild(style);
 }
 
+function syncFolders(folders) {
+    chrome.storage.local.set({ folders }, () => {
+        renderFolders();
+    });
+}
+
 
 
 function showFolderPicker(folders, callback) {
@@ -270,9 +276,7 @@ function observeSidebarPrompts(sidebar) {
                     };
                     showFolderPicker(folders, (folderName) => {
                         folders = addPromptToFolder(folderName, prompt, folders);
-                        chrome.storage.local.set({ folders }, () => {
-                            renderFolders(); // Re-render folders after adding prompt
-                        });
+                        syncFolders(folders);
                     });
                 });
             });
@@ -327,9 +331,7 @@ function renderFolders() {
                             }
                             return f;
                         });
-                        chrome.storage.local.set({ folders }, () => {
-                            renderFolders();
-                        });
+                        syncFolders(folders);
                     });                    
                 } else {
                     editFolderNameBtn.textContent = '💾';
@@ -346,9 +348,7 @@ function renderFolders() {
                 chrome.storage.local.get(['folders'], (result) => {
                     let folders = result.folders || [];
                     folders = folders.filter(f => f.folderName !== folder.folderName);
-                    chrome.storage.local.set({ folders }, () => {
-                        renderFolders();
-                    });
+                    syncFolders(folders);
                 });
             });
             
@@ -380,9 +380,7 @@ function renderFolders() {
                         folders.map((f) => {
                             if (f.folderName === folder.folderName) {
                                 f.prompts = f.prompts.filter(p => p.link !== prompt.link);
-                                chrome.storage.local.set({ folders }, () => {
-                                    renderFolders();
-                                });
+                                syncFolders(folders);
                             }
                         });
                         
@@ -406,9 +404,7 @@ function renderFolders() {
                     promptList.classList.remove('hidden');
                 }
                 console.log(folders);
-                chrome.storage.local.set({ folders }, () => {
-                    renderFolders();
-                });
+                syncFolders(folders);
             });
 
             folderDiv.appendChild(folderItem);
@@ -446,9 +442,7 @@ function dummyDate() {
         }
     ]
 
-    chrome.storage.local.set({ folders }, () => {
-        renderFolders();
-    });
+    syncFolders(folders);
 }
 
 
@@ -458,9 +452,7 @@ function addFolderIfNotExists(folderName, callback) {
 
         if (! folders.find(f => f.folderName === folderName)) {
             folders.push({ folderName, prompts: [] });
-            chrome.storage.local.set({ folders }, () => {
-                renderFolders();
-            });
+            syncFolders(folders);
         }
     });
 }
