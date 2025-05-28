@@ -147,7 +147,8 @@ function injectStyles() {
         font-size: 0.875rem; /* 14px */
     }
     .db-prompt-item {
-        margin-left: 10px;
+        // margin-left: 10px;
+        padding: 5px;
         display: flex;
         flex-direction: column;
         gap: 0.25rem;
@@ -179,6 +180,14 @@ function injectStyles() {
             }
         }
     }
+    #db-add-to-folder-btn {
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        height: 50px;
+        width: 50px;
+        background: #fff;
+        border-radius: 50%;}
     `;
     document.head.appendChild(style);
 }
@@ -556,7 +565,49 @@ function waitForSidebarAndInjectButton() {
     }, 500);
 }
 
+function injectAddToFolderButton() {
+    
+    const checkInterval = setInterval(() => {
+        const pageHeader = document.getElementById('page-header');
 
+        if (! pageHeader || document.getElementById('db-add-to-folder-btn')) {
+            return;
+        }
+
+        clearInterval(checkInterval);
+        const url = window.location.href;
+        const pattern = /^https:\/\/chatgpt\.com\/c\/[a-zA-Z0-9-]+$/;
+
+        if (pattern.test(url)) {
+            const button = document.createElement('button');
+            button.id = 'db-add-to-folder-btn';
+            button.textContent = '➕'
+            button.title = 'Add to Folder';
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                chrome.storage.local.get(['folders'], (data) => {
+                    let folders = data.folders || [];
+                    const prompt = {
+                        name: document.title.trim(),
+                        link: url.replace('https://chatgpt.com/c/', '/c/'),
+                    };
+                    showFolderPicker(folders, (folderName) => {
+                        folders = addPromptToFolder(folderName, prompt, folders);
+                        syncFolders(folders);
+                    });
+                });
+            });
+
+            document.body.append(button);
+            // sidebar.parentNode.insertBefore(foldersWrapper, sidebar);
+        }
+    });
+    
+}
 
 // Run on initial load
 waitForSidebarAndInjectButton();
+
+injectAddToFolderButton()
