@@ -259,7 +259,7 @@ function observeSidebarPrompts(sidebar) {
                 chrome.storage.local.get(['folders'], (data) => {
                     let folders = data.folders || [];
                     const prompt = {
-                        name: item.textContent.trim(),
+                        name: item.textContent.replace('📁', '').trim(),
                         link: item.getAttribute('href'),
                     };
                     showFolderPicker(folders, (folderName) => {
@@ -310,7 +310,7 @@ function renderFolders() {
                     folderNameElement.setAttribute('contenteditable', false);
                     const newFolderName = folderNameElement.textContent.trim();
                     if (! newFolderName || newFolderName === folder.folderName) {
-                        alert("Folder name cannot be empty or unchanged.");
+                        folderNameElement.innerText = folder.folderName; // Reset to original name if empty
                         return;
                     }
                     chrome.storage.local.get(['folders'], (result) => {
