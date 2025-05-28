@@ -1,12 +1,23 @@
 function injectStyles() {
     const style = document.createElement('style');
     style.textContent = `
+    .hidden {
+        display: none !important;
+    }
+    .pointer {
+        cursor: pointer !important;
+    }
     #db-folder-wrapper {
         width: calc(100% - 15px);
         display: flex;
         flex-direction: column;
         gap: 5px;
         margin: 10px auto 0;
+    }
+    #db-folders {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
     }
     #db-prompt-folder-btn {
         width: 100%;
@@ -28,12 +39,16 @@ function injectStyles() {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        cursor: pointer;
     //   margin: 5px 10px;
         padding: 6px;
         background: #262626;
         border-radius: 5px;
         font-size: 14px;
+    }
+    .db-folder-list-item span:first-child, .db-prompt-item-link {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
     }
 
     #db-prompt-modal-overlay {
@@ -116,190 +131,35 @@ function injectStyles() {
         font-size: 0.875rem; /* 14px */
     }
     .db-prompt-item {
-        margin-left: 1rem;
-        margin-top: 0.25rem;
-        display: none;
+        margin-left: 10px;
+        display: flex;
         flex-direction: column;
         gap: 0.25rem;
+    }
+    .db-prompt-item-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 8px;
+        // background: #262626;
+        border-radius: 5px;
+        font-size: 14px;
+        &:hover {
+            background: #262626;
+        }
     }
     `;
     document.head.appendChild(style);
 }
 
-function showFolderModal() {
-    // Create modal elements
-    const overlay = document.createElement('div');
-    overlay.id = 'db-prompt-modal-overlay';
-
-    const modal = document.createElement('div');
-    modal.id = 'db-prompt-modal';
-
-    modal.innerHTML = `<input type="text" placeholder="Folder name" id="prompt-folder-input" />
-                        <button id="prompt-create-folder">Create</button>`;
-
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-
-    document.getElementById('prompt-create-folder').addEventListener('click', () => {
-        const name = document.getElementById('prompt-folder-input').value.trim();
-        if (name) {
-            addFolderIfNotExists(name)
-            document.body.removeChild(overlay);
-            renderFolders(document.getElementById('db-folders-with-prompts'));
-        }
-    });
-
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-            document.body.removeChild(overlay);
-        }
-    });
-}
-
-function observeSidebarPrompts(sidebar) {
-    const observer = new MutationObserver(() => {
-        const promptItems = sidebar.querySelectorAll('a');
-
-        promptItems.forEach((item) => {
-            if (item.querySelector('.db-folder-icon')) return;
-
-            const folderBtn = document.createElement('button');
-            folderBtn.innerText = '📁';
-            folderBtn.className = 'db-folder-icon';
-
-            folderBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                chrome.storage.local.get(['folders'], (data) => {
-                    const folders = data.folders || [];
-                    showFolderPicker(folders);
-                });
-            });
-
-            item.appendChild(folderBtn);
-        });
-    });
-
-    observer.observe(sidebar, { childList: true, subtree: true });
-}
-function injectSaveButtonsIntoPrompts() {
-    const prompts = document.querySelectorAll('#history a'); // ChatGPT prompts
-
-    prompts.forEach(prompt => {
-        if (prompt.parentNode.querySelector('.save-to-folder-btn')) return;
-
-        const btn = document.createElement('button');
-        btn.textContent = '➕';
-        btn.className = 'save-to-folder-btn ml-1 text-sm text-green-600 hover:text-green-800';
-        btn.title = 'Save this prompt to a folder';
-
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            showFolderSelectModal();
-        });
-
-        prompt.parentNode.appendChild(btn);
-    });
-}
-
-function showFolderSelectModal() {
-    chrome.storage.local.get(['folders'], (data) => {
-        const folders = data.folders || [];
-
-        const modal = document.createElement('div');
-        modal.className = 'fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50';
-
-        const box = document.createElement('div');
-        box.className = 'bg-white p-4 rounded shadow max-w-xs w-full';
-
-        const title = document.createElement('div');
-        title.textContent = 'Select Folder';
-        title.className = 'font-semibold mb-2';
-
-        const select = document.createElement('select');
-        select.className = 'w-full mb-4 p-1 border rounded';
-        folders.forEach(folder => {
-            const option = document.createElement('option');
-            option.value = folder;
-            option.textContent = folder;
-            select.appendChild(option);
-        });
-
-        const submit = document.createElement('button');
-        submit.textContent = 'Save';
-        submit.className = 'bg-blue-500 text-white px-3 py-1 rounded';
-        submit.addEventListener('click', () => {
-            debugger
-            const selected = select.value;
-            document.body.removeChild(modal);
-            let folderName = selected;
-            chrome.storage.local.get(['folders'], (data) => {
-                const folders = data.folders || {};
-                if (!folders[folderName]) folders[folderName] = [];
-
-                const exists = folders[folderName].some(p => p.name === promptName && p.url === promptUrl);
-                if (!exists) {
-                    folders[folderName].push({ name: promptName, url: promptUrl });
-
-                    chrome.storage.local.set({ folders }, () => {
-                        console.log('Prompt saved to folder:', folderName);
-                    });
-                }
-            });
-        });
-
-        box.append(title, select, submit);
-        modal.appendChild(box);
-        document.body.appendChild(modal);
-    });
-}
 
 
-function showFolderPicker(folders) {
-    const overlay = document.createElement('div');
-    overlay.className = 'db-folder-list-modal-overlay';
 
-    const modal = document.createElement('div');
-    modal.className = 'db-folder-list-modal';
 
-    const title = document.createElement('h2');
-    title.className = 'db-folder-list-modal-header';
-    title.textContent = 'Choose Folder';
-    modal.appendChild(title);
 
-    folders.forEach(folder => {
-        const btn = document.createElement('button');
-        btn.textContent = folder.folderName;
-        btn.className = 'db-folder-list-modal-btn';
-        btn.addEventListener('click', () => {
-            document.body.removeChild(overlay);
-            const prompt = {name: item.textContent.trim(), link: item.href.trim() };
-            chrome.storage.local.get(['folders'], (res) => {
-                const folders = res.folders || [];
-                folders.map((_folder) => {
-                    if (_folder.folderName === folder.folderName) {
-                        const promptExists = _folder.prompts.some((promptItem) => promptItem.link === prompt.link);
-                        if (! promptExists) {
-                            _folder.prompts.push(prompt);
-                        }
-                    }
-                    return _folder;
-                });
-                chrome.storage.local.set({ folders });
-            });
-        });
-        modal.appendChild(btn);
-    });
+function renderFolders() {
 
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-}
-
-function renderFolders(container) {
-
+    const container = document.getElementById('db-folders');
     chrome.storage.local.get(['folders'], (result) => {
         const folders = result.folders || [];
 
@@ -307,42 +167,71 @@ function renderFolders(container) {
 
         folders.forEach(folder => {
             const folderDiv = document.createElement('div');
-            
-            // DELETE LATER
-            if (typeof folder === 'string') {
-                folder = {folderName: folder, prompts: []}
-            }
-            
-            folder.prompts = [{
-                "name": "prompt1",
-                "link": "/c/68359cc4-dcd8-800f-9ab3-e42a018b0d0b"
-            },{
-                "name": "prompt2",
-                "link": "/c/68359cc4-dcd8-800f-9ab3-e42a0aaaaaaa"
-            }];
+            folderDiv.className = 'db-folder-container';
             
             // Folder header with toggle
             const header = document.createElement('div');
             header.className = 'db-folder-list-item';
 
             const title = document.createElement('span');
+            title.className = "pointer"
             title.textContent = folder.folderName;
+            const trashIcon = document.createElement('span');
+            trashIcon.className = "pointer"
+            trashIcon.textContent = '🗑️';
+            trashIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                chrome.storage.local.get(['folders'], (result) => {
+                    let folders = result.folders || [];
+                    folders = folders.filter(f => f.folderName !== folder.folderName);
+                    chrome.storage.local.set({ folders }, () => {
+                        renderFolders();
+                    });
+                });
+            });
 
             header.appendChild(title);
+            header.appendChild(trashIcon);
 
             // Prompts container (hidden initially)
             const promptList = document.createElement('div');
-            promptList.className = 'db-prompt-item';
+            promptList.className = 'db-prompt-item hidden';
 
-            folder.prompts.forEach(p => {
+            folder.prompts.forEach(prompt => {
                 const link = document.createElement('a');
-                link.href = p.link;
-                link.textContent = p.name;
-                link.className = 'text-blue-600 hover:underline text-sm';
-                promptList.appendChild(link);
+                link.href = prompt.link;
+                link.textContent = prompt.name;
+                link.className = 'db-prompt-item-link';
+                const trashIcon = document.createElement('span');
+                trashIcon.className = 'pointer';
+                trashIcon.textContent = '🗑️';
+                trashIcon.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // Remove prompt from folder
+                    chrome.storage.local.get(['folders'], (result) => {
+                        let folders = result.folders || [];
+                        folders.map((f) => {
+                            if (f.folderName === folder.folderName) {
+                                f.prompts = f.prompts.filter(p => p.link !== prompt.link);
+                                chrome.storage.local.set({ folders }, () => {
+                                    renderFolders();
+                                });
+                            }
+                        });
+                        
+                    });   
+                });
+                
+                const promptWrapper = document.createElement('div');
+                promptWrapper.className = 'db-prompt-item-wrapper';
+                promptWrapper.appendChild(link);
+                promptWrapper.appendChild(trashIcon);
+                
+                
+                promptList.appendChild(promptWrapper);
             });
 
-            header.addEventListener('click', () => {
+            title.addEventListener('click', () => {
                 promptList.classList.toggle('hidden');
             });
 
@@ -350,6 +239,41 @@ function renderFolders(container) {
             folderDiv.appendChild(promptList);
             container.appendChild(folderDiv);
         });
+    });
+}
+
+function dummyDate() {
+    const folders = [
+        {
+            "folderName": "folder1",
+            "prompts": [
+                {
+                    "name": "prompt1",
+                    "link": "/c/68359cc4-dcd8-800f-9ab3-e42a018b0d0b" 
+                },
+                {
+                    "name": "prompt2",
+                    "link": "/c/68359cc4-dcd8-800f-9ab3-e42a018b0d0d" 
+                }
+            ]
+        },
+        {
+            "folderName": "folder2 very long name that should be truncated if it exceeds a certain length",
+            "prompts": []
+        },
+        {
+            "folderName": "folder3",
+            "prompts": [
+                {
+                    "name": "prompt3 with a very long name that should be truncated if it exceeds a certain length",
+                    "link": "/c/68359cc4-dcd8-800f-9ab3-e42a018b0d0c" 
+                }
+            ]
+        }
+    ]
+
+    chrome.storage.local.set({ folders }, () => {
+        renderFolders();
     });
 }
 
@@ -369,7 +293,7 @@ function addFolderIfNotExists(folderName, callback) {
     });
 }
 
-function addPromptToFolder(folderName, promptName, promptLink, callback) {
+function addPromptToFolder(folderName, prompt, callback) {
     chrome.storage.local.get(['folders'], (result) => {
         let folders = result.folders || [];
 
@@ -380,13 +304,13 @@ function addPromptToFolder(folderName, promptName, promptLink, callback) {
             // Folder not found, optionally create it then add prompt
             folders.push({
                 folderName,
-                prompts: [{ name: promptName, link: promptLink }]
+                prompts: [{ name: prompt.promptName, link: prompt.promptLink }]
             });
         } else {
             // Check if prompt exists in folder already (by name & link)
-            const exists = folder.prompts.some(p => p.name === promptName && p.link === promptLink);
+            const exists = folder.prompts.some(p => p.name === prompt.promptName && p.link === prompt.promptLink);
             if (!exists) {
-                folder.prompts.push({ name: promptName, link: promptLink });
+                folder.prompts.push({ name: prompt.promptName, link: prompt.promptLink });
             }
         }
 
@@ -419,7 +343,7 @@ function waitForSidebarAndInjectButton() {
         button.textContent = 'New Folder ➕';
 
         button.addEventListener('click', () => {
-            showFolderModal();
+            // Show prompt to enter folder name
         });
 
         const foldersWrapper = document.createElement('div');
@@ -427,15 +351,18 @@ function waitForSidebarAndInjectButton() {
 
         // 🆕 Show folders with prompts below
         const foldersWithPromptsContainer = document.createElement('div');
-        foldersWithPromptsContainer.id = 'db-folders-with-prompts';
+        foldersWithPromptsContainer.id = 'db-folders';
         foldersWrapper.append(button, foldersWithPromptsContainer);
         sidebar.parentNode.insertBefore(foldersWrapper, sidebar);
 
         // Render them
-        renderFolders(foldersWithPromptsContainer);
+        renderFolders();
+        
+        // DELETE LATER
+        dummyDate();
 
         // ✅ Watch for prompt items being added to the sidebar
-        observeSidebarPrompts(sidebar);
+        // observeSidebarPrompts(sidebar);
 
     }, 500);
 }
