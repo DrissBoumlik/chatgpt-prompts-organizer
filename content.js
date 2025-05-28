@@ -34,7 +34,10 @@ function injectStyles() {
             background: #454545;
         }
     }
-
+    .db-folder-item-container {
+        border: 1px solid #565656;
+        border-radius: 5px;
+    }
     .db-folder-list-item {
         display: flex;
         justify-content: space-between;
@@ -249,13 +252,13 @@ function observeSidebarPrompts(sidebar) {
                 e.stopPropagation();
 
                 chrome.storage.local.get(['folders'], (data) => {
-                    const folders = data.folders || [];
+                    let folders = data.folders || [];
                     const prompt = {
                         name: item.textContent.trim(),
                         link: item.getAttribute('href'),
                     };
                     showFolderPicker(folders, (folderName) => {
-                        addPromptToFolder(folderName, prompt);
+                        folders = addPromptToFolder(folderName, prompt, folders);
                         chrome.storage.local.set({ folders }, () => {
                             renderFolders(); // Re-render folders after adding prompt
                         });
@@ -271,7 +274,7 @@ function observeSidebarPrompts(sidebar) {
 }
 
 
-function renderFolders(openedFolders = []) {
+function renderFolders() {
 
     const container = document.getElementById('db-folders');
     chrome.storage.local.get(['folders'], (result) => {
@@ -281,7 +284,7 @@ function renderFolders(openedFolders = []) {
 
         folders.forEach(folder => {
             const folderDiv = document.createElement('div');
-            folderDiv.className = 'db-folder-container';
+            folderDiv.className = 'db-folder-item-container';
             
             // Folder header with toggle
             const header = document.createElement('div');
@@ -299,7 +302,7 @@ function renderFolders(openedFolders = []) {
                     let folders = result.folders || [];
                     folders = folders.filter(f => f.folderName !== folder.folderName);
                     chrome.storage.local.set({ folders }, () => {
-                        renderFolders([folder.folderName]);
+                        renderFolders();
                     });
                 });
             });
@@ -309,10 +312,7 @@ function renderFolders(openedFolders = []) {
 
             // Prompts container (hidden initially)
             const promptList = document.createElement('div');
-            promptList.className = 'db-prompt-item';
-            if (! openedFolders.includes(folder.folderName)) {
-                promptList.classList.add('hidden');
-            }
+            promptList.className = `db-prompt-item ${folder.hidden ? 'hidden' : 'visible'}`;
 
             folder.prompts.forEach(prompt => {
                 const link = document.createElement('a');
@@ -331,7 +331,7 @@ function renderFolders(openedFolders = []) {
                             if (f.folderName === folder.folderName) {
                                 f.prompts = f.prompts.filter(p => p.link !== prompt.link);
                                 chrome.storage.local.set({ folders }, () => {
-                                    renderFolders([folder.folderName]);
+                                    renderFolders();
                                 });
                             }
                         });
@@ -349,7 +349,16 @@ function renderFolders(openedFolders = []) {
             });
 
             title.addEventListener('click', () => {
-                promptList.classList.toggle('hidden');
+                folder.hidden = ! folder.hidden;
+                if (folder.hidden) {
+                    promptList.classList.add('hidden');
+                } else {
+                    promptList.classList.remove('hidden');
+                }
+                console.log(folders);
+                chrome.storage.local.set({ folders }, () => {
+                    renderFolders();
+                });
             });
 
             folderDiv.appendChild(header);
@@ -363,28 +372,26 @@ function dummyDate() {
     const folders = [
         {
             "folderName": "folder1",
+            "hidden": true,
             "prompts": [
-                {
-                    "name": "prompt1",
-                    "link": "/c/68359cc4-dcd8-800f-9ab3-e42a018b0d0b" 
-                },
-                {
-                    "name": "prompt2",
-                    "link": "/c/68359cc4-dcd8-800f-9ab3-e42a018b0d0d" 
-                }
+                {"name": "prompt11", "link": "/c/68359cc4-dcd8-800f-9ab3-e42a018b0d0b"},
+                {"name": "prompt12","link": "/c/68359cc4-dcd8-800f-9ab3-e42a01dss8b0d0d" },
+                {"name": "prompt13","link": "/c/68359cc4-dcd8-800f-9ab3-e42a018ddb0d0d" },
+                {"name": "prompt14","link": "/c/68359cc4-dcd8-800f-9ab3-e42a01ff8b0d0d" },
             ]
         },
         {
-            "folderName": "folder2 very long name that should be truncated if it exceeds a certain length",
+            "folderName": "folder2",
+            "hidden": true,
             "prompts": []
         },
         {
             "folderName": "folder3",
+            "hidden": true,
             "prompts": [
-                {
-                    "name": "prompt3 with a very long name that should be truncated if it exceeds a certain length",
-                    "link": "/c/68359cc4-dcd8-800f-9ab3-e42a018b0d0c" 
-                }
+                {"name": "prompt31","link": "/c/68359cc4-dcd8-800f-9ab3-e42zza018b0d0c" },
+                {"name": "prompt32","link": "/c/68359cc4-dcd8-800f-9ab3-e42a01ee8b0d0c" },
+                {"name": "prompt34","link": "/c/68359cc4-dcd8-800f-9ab3-e42wwa018b0d0c" },
             ]
         }
     ]
@@ -410,23 +417,13 @@ function addFolderIfNotExists(folderName, callback) {
     });
 }
 
-function addPromptToFolder(folderName, prompt) {
-    chrome.storage.local.get(['folders'], (result) => {
-        let folders = result.folders || [];
-
-        // Find folder
-        const folder = folders.find(f => f.folderName === folderName);
-
-        // Check if prompt exists in folder already (by name & link)
-        const exists = folder.prompts.some(p => p.link === prompt.link);
-        if (! exists) {
-            folder.prompts.push({ name: prompt.name, link: prompt.link });
-        }
-
-        chrome.storage.local.set({ folders }, () => {
-            renderFolders(); // Re-render folders after adding prompt
-        });
-    });
+function addPromptToFolder(folderName, prompt, folders) {
+    const folder = folders.find(f => f.folderName === folderName);
+    const exists = folder.prompts.some(p => p.link === prompt.link);
+    if (! exists) {
+        folder.prompts.push({ name: prompt.name, link: prompt.link });
+    }
+    return folders;
 }
 
 
