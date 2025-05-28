@@ -239,6 +239,12 @@ function showFolderPicker(folders, callback) {
 
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
+    
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            document.body.removeChild(overlay);
+        }
+    });
 }
 
 function observeSidebarPrompts(sidebar) {
@@ -475,14 +481,10 @@ function showFolderModal() {
 
     const modal = document.createElement('div');
     modal.id = 'db-prompt-modal';
-
-    modal.innerHTML = `<input type="text" placeholder="Folder name" id="prompt-folder-input" />
-                        <button id="prompt-create-folder">Create</button>`;
-
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-
-    document.getElementById('prompt-create-folder').addEventListener('click', () => {
+    
+    const createFolderBtn = document.createElement('button');
+    createFolderBtn.textContent = 'Create';
+    createFolderBtn.addEventListener('click', () => {
         const name = document.getElementById('prompt-folder-input').value.trim();
         if (name) {
             addFolderIfNotExists(name)
@@ -490,6 +492,27 @@ function showFolderModal() {
             // renderFolders(document.getElementById('db-folders-with-prompts'));
         }
     });
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'Close';
+    closeButton.addEventListener('click', () => {
+        overlay.remove();
+    });
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.className = 'db-folder-list-modal-buttons';
+    buttonsContainer.appendChild(closeButton);
+    buttonsContainer.appendChild(createFolderBtn);
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Folder name';
+    input.id = 'prompt-folder-input';
+    modal.appendChild(input);
+    modal.appendChild(buttonsContainer);
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    
 
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
