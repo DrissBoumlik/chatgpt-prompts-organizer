@@ -460,7 +460,7 @@ function addFolderIfNotExists(folderName, callback) {
         let folders = result.folders || [];
 
         if (! folders.find(f => f.folderName === folderName)) {
-            folders.push({ folderName, prompts: [] });
+            folders.push({ folderName, hidden: true, prompts: [] });
             syncFolders(folders);
         }
     });
