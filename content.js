@@ -3,9 +3,9 @@ function injectStyles() {
         .then(res => res.text())
         .then(css => {
             // You can then inject it like:
-    const style = document.createElement('style');
+            const style = document.createElement('style');
             style.textContent = css;
-    document.head.appendChild(style);
+            document.head.appendChild(style);
         });
 }
 
@@ -87,7 +87,7 @@ function observeSidebarPrompts(sidebar) {
             if (item.querySelector('.db-folder-icon')) return;
 
             const folderBtn = document.createElement('button');
-            folderBtn.innerText = '📁';
+            folderBtn.innerHTML = '➕';
             folderBtn.className = 'db-folder-icon';
 
             folderBtn.addEventListener('click', (e) => {
@@ -142,7 +142,6 @@ function renderFolders() {
                 const folderNameElement = e.target.parentNode.parentNode.querySelector('span')
                 if (folderNameElement.getAttribute('contenteditable') === 'true') {
                     editFolderNameBtn.textContent = '✏️';
-                    console.log("Submitting folder name change to", folderNameElement.textContent);
                     folderNameElement.setAttribute('contenteditable', false);
                     const newFolderName = folderNameElement.textContent.trim();
                     if (! newFolderName || newFolderName === folder.folderName) {
@@ -161,7 +160,6 @@ function renderFolders() {
                     });                    
                 } else {
                     editFolderNameBtn.textContent = '💾';
-                    console.log("Editing folder name");
                     folderNameElement.setAttribute('contenteditable', true)
                     folderNameElement.focus();
                 }
@@ -229,7 +227,6 @@ function renderFolders() {
                 } else {
                     promptList.classList.remove('hidden');
                 }
-                console.log(folders);
                 syncFolders(folders);
             });
 
@@ -238,37 +235,6 @@ function renderFolders() {
             container.appendChild(folderDiv);
         });
     });
-}
-
-function dummyDate() {
-    const folders = [
-        {
-            "folderName": "folder1",
-            "hidden": true,
-            "prompts": [
-                {"name": "prompt11", "link": "/c/68359cc4-dcd8-800f-9ab3-e42a018b0d0b"},
-                {"name": "prompt12","link": "/c/68359cc4-dcd8-800f-9ab3-e42a01dss8b0d0d" },
-                {"name": "prompt13","link": "/c/68359cc4-dcd8-800f-9ab3-e42a018ddb0d0d" },
-                {"name": "prompt14","link": "/c/68359cc4-dcd8-800f-9ab3-e42a01ff8b0d0d" },
-            ]
-        },
-        {
-            "folderName": "folder2",
-            "hidden": true,
-            "prompts": []
-        },
-        {
-            "folderName": "folder3",
-            "hidden": true,
-            "prompts": [
-                {"name": "prompt31","link": "/c/68359cc4-dcd8-800f-9ab3-e42zza018b0d0c" },
-                {"name": "prompt32","link": "/c/68359cc4-dcd8-800f-9ab3-e42a01ee8b0d0c" },
-                {"name": "prompt34","link": "/c/68359cc4-dcd8-800f-9ab3-e42wwa018b0d0c" },
-            ]
-        }
-    ]
-
-    syncFolders(folders);
 }
 
 
@@ -350,7 +316,10 @@ function waitForSidebarAndInjectButton() {
         
 
         clearInterval(checkInterval);
+        
         injectStyles();
+
+        injectAddToFolderButton();
 
         const button = document.createElement('button');
         button.id = 'db-prompt-folder-btn';
@@ -373,9 +342,6 @@ function waitForSidebarAndInjectButton() {
         // Render them
         renderFolders();
         
-        // DELETE LATER
-        // dummyDate();
-
         // ✅ Watch for prompt items being added to the sidebar
         observeSidebarPrompts(sidebar);
 
@@ -426,5 +392,3 @@ function injectAddToFolderButton() {
 
 // Run on initial load
 waitForSidebarAndInjectButton();
-
-injectAddToFolderButton()
