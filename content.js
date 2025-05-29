@@ -39,6 +39,12 @@ function showFolderPicker(folders, callback) {
         const label = document.createElement('label');
         label.className = 'db-folder-list-modal-btn';
         label.setAttribute('for', `folder-${folder.folderName}`);
+        label.addEventListener('mouseover', () => {
+            label.style.backgroundColor = folder.color || '#262626';
+        });
+        label.addEventListener('mouseout', () => {
+            label.style.backgroundColor = '';
+        });
         label.appendChild(text);
         label.appendChild(checkbox);
         modal.appendChild(label);
