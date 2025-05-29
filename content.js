@@ -97,7 +97,7 @@ function observeSidebarPrompts(sidebar) {
                 chrome.storage.local.get(['folders'], (data) => {
                     let folders = data.folders || [];
                     const prompt = {
-                        name: item.textContent.replace('📁', '').trim(),
+                        name: item.textContent.replace('➕', '').trim(),
                         link: item.getAttribute('href'),
                     };
                     showFolderPicker(folders, (folderName) => {
@@ -130,6 +130,7 @@ function renderFolders() {
             // Folder header with toggle
             const folderItem = document.createElement('div');
             folderItem.className = 'db-folder-list-item';
+            folderItem.style.backgroundColor = folder.color || '#262626';
 
             const title = document.createElement('span');
             title.className = "pointer w-100"
@@ -252,12 +253,12 @@ function renderFolders() {
 }
 
 
-function addFolderIfNotExists(folderName, callback) {
+function addFolderIfNotExists(folderName, color) {
     chrome.storage.local.get(['folders'], (result) => {
         let folders = result.folders || [];
 
         if (! folders.find(f => f.folderName === folderName)) {
-            folders.push({ folderName, hidden: true, prompts: [] });
+            folders.push({ folderName, color, hidden: true, prompts: [] });
             syncFolders(folders);
         }
     });
@@ -284,10 +285,10 @@ function showFolderModal() {
     createFolderBtn.textContent = 'Create';
     createFolderBtn.addEventListener('click', () => {
         const name = document.getElementById('prompt-folder-input').value.trim();
+        const color = document.getElementById('prompt-folder-color').value.trim();
         if (name) {
-            addFolderIfNotExists(name)
+            addFolderIfNotExists(name, color)
             document.body.removeChild(overlay);
-            // renderFolders(document.getElementById('db-folders-with-prompts'));
         }
     });
     const closeButton = document.createElement('button');
@@ -304,7 +305,13 @@ function showFolderModal() {
     input.type = 'text';
     input.placeholder = 'Folder name';
     input.id = 'prompt-folder-input';
+    
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.id = 'prompt-folder-color';
+    colorInput.value = '#ffffff'; // Default color
     modal.appendChild(input);
+    modal.appendChild(colorInput);
     modal.appendChild(buttonsContainer);
 
     overlay.appendChild(modal);
