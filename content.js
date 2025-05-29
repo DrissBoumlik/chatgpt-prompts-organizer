@@ -132,7 +132,7 @@ function renderFolders() {
             folderItem.className = 'db-folder-list-item';
 
             const title = document.createElement('span');
-            title.className = "pointer"
+            title.className = "pointer w-100"
             title.textContent = folder.folderName;
             const editFolderNameBtn = document.createElement('span');
             editFolderNameBtn.className = "pointer"
@@ -162,6 +162,12 @@ function renderFolders() {
                     editFolderNameBtn.textContent = '💾';
                     folderNameElement.setAttribute('contenteditable', true)
                     folderNameElement.focus();
+
+                    const range = document.createRange();
+                    const selection = window.getSelection();
+                    range.selectNodeContents(folderNameElement);         // Select the text content inside the span
+                    selection.removeAllRanges();            // Clear any previous selection
+                    selection.addRange(range);              // Highlight the span text
                 }
             });
             const trashIcon = document.createElement('span');
