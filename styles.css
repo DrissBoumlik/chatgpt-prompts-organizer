@@ -8,12 +8,24 @@
 .w-100 {
     width: 100% !important;
 }
+[type=color] {
+    appearance: none;
+    background-color: transparent;
+    width: 100px;
+    height: 100px;
+    border: none;
+    cursor: pointer;
+}
+[type=color]::-webkit-color-swatch {
+  border-radius: 15px;
+  border: none;
+}
 [type=checkbox] {
     width: 1rem;
     height: 1rem;
     color: dodgerblue;
     vertical-align: middle;
-    -webkit-appearance: none;
+    appearance: none;
     background: none;
     border: 0;
     outline: 0;
