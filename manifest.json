@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Prompt Folder Injector",
+  "name": "ChatGPT Folder Organizer",
   "version": "1.0",
-  "description": "Injects folder button into ChatGPT sidebar",
+  "description": "A Chrome extension to organize your ChatGPT prompts into folders.",
   "permissions": ["storage", "scripting"],
   "host_permissions": ["https://chatgpt.com/*"],
   "content_scripts": [
