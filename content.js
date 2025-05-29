@@ -140,36 +140,15 @@ function renderFolders() {
             editFolderNameBtn.textContent = '✏️';
             editFolderNameBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const folderNameElement = e.target.parentNode.parentNode.querySelector('span')
-                if (folderNameElement.getAttribute('contenteditable') === 'true') {
-                    editFolderNameBtn.textContent = '✏️';
-                    folderNameElement.setAttribute('contenteditable', false);
-                    const newFolderName = folderNameElement.textContent.trim();
-                    if (! newFolderName || newFolderName === folder.folderName) {
-                        folderNameElement.innerText = folder.folderName; // Reset to original name if empty
-                        return;
-                    }
-                    chrome.storage.local.get(['folders'], (result) => {
-                        let folders = result.folders || [];
-                        folders = folders.map(f => {
-                            if (f.folderName === folder.folderName) {
-                                f.folderName = newFolderName;
-                            }
-                            return f;
-                        });
-                        syncFolders(folders);
-                    });                    
-                } else {
-                    editFolderNameBtn.textContent = '💾';
-                    folderNameElement.setAttribute('contenteditable', true)
-                    folderNameElement.focus();
-
-                    const range = document.createRange();
-                    const selection = window.getSelection();
-                    range.selectNodeContents(folderNameElement);         // Select the text content inside the span
-                    selection.removeAllRanges();            // Clear any previous selection
-                    selection.addRange(range);              // Highlight the span text
+                const folderName = e.target.parentNode.parentNode.querySelector('span')?.textContent.trim();
+                if (! folderName) {
+                    return;
                 }
+                chrome.storage.local.get(['folders'], (result) => {
+                    let folders = result.folders || [];
+                    const folder = folders.find(f => f.folderName === folderName);
+                    showFolderModal(folder.folderName, folder.color, folderName);
+                });
             });
             const trashIcon = document.createElement('span');
             trashIcon.className = "pointer"
@@ -253,9 +232,20 @@ function renderFolders() {
 }
 
 
-function addFolderIfNotExists(folderName, color) {
+function addFolderIfNotExists(folderName, color, oldValue = null) {
     chrome.storage.local.get(['folders'], (result) => {
         let folders = result.folders || [];
+        if (oldValue) {
+            folders = folders.map(f => {
+                if (f.folderName === oldValue) {
+                    f.folderName = folderName;
+                    f.color = color;
+                }
+                return f;
+            });
+            syncFolders(folders);
+            return;
+        }
 
         if (! folders.find(f => f.folderName === folderName)) {
             folders.push({ folderName, color, hidden: true, prompts: [] });
@@ -273,7 +263,7 @@ function addPromptToFolder(folderName, prompt, folders) {
     return folders;
 }
 
-function showFolderModal() {
+function showFolderModal(folderName = '', color = '#262626') {
     // Create modal elements
     const overlay = document.createElement('div');
     overlay.id = 'db-prompt-modal-overlay';
@@ -284,10 +274,11 @@ function showFolderModal() {
     const createFolderBtn = document.createElement('button');
     createFolderBtn.textContent = 'Create';
     createFolderBtn.addEventListener('click', () => {
+        const oldValue = document.getElementById('prompt-folder-input').getAttribute('data-old-value');
         const name = document.getElementById('prompt-folder-input').value.trim();
         const color = document.getElementById('prompt-folder-color').value.trim();
         if (name) {
-            addFolderIfNotExists(name, color)
+            addFolderIfNotExists(name, color, oldValue)
             document.body.removeChild(overlay);
         }
     });
@@ -305,17 +296,21 @@ function showFolderModal() {
     input.type = 'text';
     input.placeholder = 'Folder name';
     input.id = 'prompt-folder-input';
+    input.value = folderName;
+    input.setAttribute('data-old-value', folderName);
+    input.autofocus = true;
     
     const colorInput = document.createElement('input');
     colorInput.type = 'color';
     colorInput.id = 'prompt-folder-color';
-    colorInput.value = '#ffffff'; // Default color
+    colorInput.value = color;
     modal.appendChild(input);
     modal.appendChild(colorInput);
     modal.appendChild(buttonsContainer);
 
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
+    input.focus();
 
     
 
