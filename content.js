@@ -213,6 +213,11 @@ function renderFolders() {
                 
                 const promptWrapper = document.createElement('div');
                 promptWrapper.className = 'db-prompt-item-wrapper';
+
+                if (window.location.href === `https://chatgpt.com${prompt.link}`) {
+                    promptWrapper.classList.add('active');
+                }
+                
                 promptWrapper.appendChild(link);
                 promptWrapper.appendChild(trashIcon);
                 

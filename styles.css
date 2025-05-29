@@ -24,7 +24,7 @@
 #db-prompt-folder-btn {
     width: 100%;
     padding: 5px 10px;
-    /* background: #6d6d6d; */
+    /* background-color: #6d6d6d; */
     color: white;
     font-size: 14px;
     border: 1px solid #6d6d6d;
@@ -33,7 +33,7 @@
     font-weight: bold;
     
     &:hover {
-        background: #454545;
+        background-color: #454545;
     }
 }
 .db-folder-item-container {
@@ -47,7 +47,7 @@
     gap: 5px;
     /* margin: 5px 10px; */
     padding: 4px 8px;
-    background: #262626;
+    background-color: #262626;
     border-radius: 5px;
     font-size: 14px;
 }
@@ -66,7 +66,7 @@
     position: fixed;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
-    background: #00000099;
+    background-color: #00000099;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -74,7 +74,7 @@
 }
 
 #db-prompt-modal {
-    background: #383838;
+    background-color: #383838;
     padding: 30px 20px 20px;
     border-radius: 8px;
     width: 300px;
@@ -162,7 +162,7 @@
     font-size: 0.875rem; /* 14px */
     width: 20px;
     display: block;
-    background: #3a3a3a;
+    background-color: #3a3a3a;
     border-radius: 50%;
 }
 .db-prompt-item {
@@ -177,11 +177,14 @@
     justify-content: space-between;
     align-items: center;
     padding: 4px 8px;
-    /* background: #262626; */
+    /* background-color: #262626; */
     border-radius: 5px;
     font-size: 14px;
     &:hover {
-        background: #262626;
+        background-color: #262626;
+    }
+    &.active {
+        background-color: #3a3a3a;
     }
 }
 .db-folder-list-modal-buttons {
@@ -195,7 +198,7 @@
         border-radius: 5px;
         cursor: pointer;
         &:hover {
-            background: #7a7a7a;
+            background-color: #7a7a7a;
         }
     }
 }
@@ -205,7 +208,7 @@
     right: 30px;
     height: 40px;
     width: 40px;
-    background: #fff;
+    background-color: #fff;
     border-radius: 50%;
 }
 
@@ -228,7 +231,7 @@
     color: #767676;
     vertical-align: middle;
     appearance: none;
-    background: none;
+    background-color: none;
     border: 0;
     outline: 0;
     flex-grow: 0;
