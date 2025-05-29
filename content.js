@@ -169,6 +169,10 @@ function renderFolders() {
             trashIcon.textContent = '🗑️';
             trashIcon.addEventListener('click', (e) => {
                 e.stopPropagation();
+                if (! confirm(`Are you sure you want to delete the folder "${folder.folderName}"? This action cannot be undone.`)) {
+                    return;
+                }
+                
                 chrome.storage.local.get(['folders'], (result) => {
                     let folders = result.folders || [];
                     folders = folders.filter(f => f.folderName !== folder.folderName);
@@ -198,6 +202,10 @@ function renderFolders() {
                 trashIcon.textContent = '🗑️';
                 trashIcon.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    
+                    if (! confirm(`Are you sure you want to delete the prompt "${prompt.name}"? This action cannot be undone.`)) {
+                        return;
+                    }
                     // Remove prompt from folder
                     chrome.storage.local.get(['folders'], (result) => {
                         let folders = result.folders || [];
