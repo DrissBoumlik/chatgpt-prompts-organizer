@@ -218,6 +218,8 @@ function renderFolders() {
 
                 if (window.location.href === `https://chatgpt.com${prompt.link}`) {
                     promptWrapper.classList.add('active');
+                } else {
+                    promptWrapper.classList.remove('active');
                 }
                 
                 promptWrapper.appendChild(link);
