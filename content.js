@@ -15,7 +15,12 @@ function syncFolders(folders) {
     });
 }
 
-
+function addPromptToFolderAndSync(folders, prompt) {
+    showFolderPicker(folders, (folderName) => {
+        folders = addPromptToFolder(folderName, prompt, folders);
+        syncFolders(folders);
+    });
+}
 
 function showFolderPicker(folders, callback) {
     const overlay = document.createElement('div');
@@ -106,10 +111,7 @@ function observeSidebarPrompts(sidebar) {
                         name: item.textContent.replace('➕', '').trim(),
                         link: item.getAttribute('href'),
                     };
-                    showFolderPicker(folders, (folderName) => {
-                        folders = addPromptToFolder(folderName, prompt, folders);
-                        syncFolders(folders);
-                    });
+                    addPromptToFolderAndSync(folders, prompt);
                 });
             });
 
@@ -404,10 +406,7 @@ function injectAddToFolderButton() {
                         name: document.title.trim(),
                         link: url.replace('https://chatgpt.com/c/', '/c/'),
                     };
-                    showFolderPicker(folders, (folderName) => {
-                        folders = addPromptToFolder(folderName, prompt, folders);
-                        syncFolders(folders);
-                    });
+                    addPromptToFolderAndSync(folders, prompt);
                 });
             });
 
