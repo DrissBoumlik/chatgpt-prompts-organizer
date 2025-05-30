@@ -1,0 +1,36 @@
+/* app.css */
+body {
+  background-color: #f9fafb;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 1rem;
+  color: #111827;
+  width: 300px; /* ideal size for popup */
+}
+
+.container {
+  max-width: 100%;
+}
+
+h1 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  color: #1f2937;
+}
+
+button {
+  background-color: #3b82f6;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  width: 100%;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #2563eb;
+}
