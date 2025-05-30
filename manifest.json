@@ -3,8 +3,13 @@
   "name": "ChatGPT Folder Organizer",
   "version": "1.0",
   "description": "A Chrome extension to organize your ChatGPT prompts into folders.",
-  "permissions": ["storage", "scripting"],
+  "permissions": ["storage", "scripting", "tabs"],
   "host_permissions": ["https://chatgpt.com/*"],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+
   "content_scripts": [
     {
       "matches": ["https://chatgpt.com/*"],
