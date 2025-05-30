@@ -385,7 +385,7 @@ function injectAddToFolderButton() {
         }
 
         clearInterval(checkInterval);
-        const url = window.location.href;
+        let url = window.location.href;
         const pattern = /^https:\/\/chatgpt\.com\/c\/[a-zA-Z0-9-]+$/;
 
         if (pattern.test(url)) {
@@ -397,6 +397,7 @@ function injectAddToFolderButton() {
                 e.preventDefault();
                 e.stopPropagation();
                 
+                url = window.location.href;
                 chrome.storage.local.get(['folders'], (data) => {
                     let folders = data.folders || [];
                     const prompt = {
