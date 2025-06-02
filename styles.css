@@ -9,12 +9,49 @@
     width: 100% !important;
 }
 
-#db-folder-wrapper {
-    width: calc(100% - 15px);
+.db-folder-wrapper {
+    /* width: calc(100% - 15px); */
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    margin: 10px auto 0;
+    /* gap: 5px; */
+    /* margin: 10px auto 0; */
+    
+    background-color: #171717;
+    width: 280px;
+    position: fixed;
+    right: 0;
+    top: 50%;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #3c3c3c;
+    
+    transform: translate(100%, -50%);
+    transition: transform .2s linear;
+    &.visible {
+        transform: translate(0%, -50%);
+    }
+    
+    .db-toggle-folder-wrapper {
+        height: 30px;
+        width: 20px;
+        background: #171717;
+        position: absolute;
+        left: -20px;
+        top: 20px;
+        &:before {
+            content: '';
+            border: 3px solid #fff;
+            border-bottom-color: transparent;
+            border-right-color: transparent;
+            transform: rotate(-45deg);
+            height: 15px;
+            width: 15px;
+            display: block;
+            position: absolute;
+            left: 7.5px;
+            top: 7.5px;
+        }
+    }
 }
 #db-folders {
     display: flex;
@@ -24,6 +61,7 @@
 #db-prompt-folder-btn {
     width: 100%;
     padding: 5px 10px;
+    margin-bottom: 5px;
     /* background-color: #6d6d6d; */
     color: white;
     font-size: 14px;

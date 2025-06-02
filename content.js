@@ -182,7 +182,7 @@ function renderFolders() {
             folderItem.appendChild(title);
             folderItem.appendChild(folderActions);
 
-            // Prompts container (hidden initially)
+            // Prompts container
             const promptList = document.createElement('div');
             promptList.className = `db-prompt-item ${folder.hidden ? 'hidden' : 'visible'}`;
 
@@ -363,12 +363,21 @@ function waitForSidebarAndInjectButton() {
 
         const foldersWrapper = document.createElement('div');
         foldersWrapper.id = 'db-folder-wrapper';
+        foldersWrapper.className = 'db-folder-wrapper visible';
+        
+        const toggleFolderWrapper = document.createElement('div');
+        toggleFolderWrapper.id = 'db-toggle-folder-wrapper'
+        toggleFolderWrapper.className = 'db-toggle-folder-wrapper'
+        toggleFolderWrapper.addEventListener('click', () => {
+            foldersWrapper.classList.toggle('visible');
+        });
 
         // 🆕 Show folders with prompts below
         const foldersWithPromptsContainer = document.createElement('div');
         foldersWithPromptsContainer.id = 'db-folders';
-        foldersWrapper.append(button, foldersWithPromptsContainer);
-        sidebar.parentNode.insertBefore(foldersWrapper, sidebar);
+        foldersWrapper.append(toggleFolderWrapper, button, foldersWithPromptsContainer);
+        // sidebar.parentNode.insertBefore(foldersWrapper, sidebar);
+        document.body.appendChild(foldersWrapper);
 
         // Render them
         renderFolders();
@@ -406,14 +415,13 @@ function injectAddToFolderButton() {
                     let folders = data.folders || [];
                     const prompt = {
                         name: document.title.trim(),
-                        link: url.replace('https://chatgpt.com/c/', '/c/'),
+                        link: url.replace('https://chatgpt.com', ''),
                     };
                     addPromptToFolderAndSync(folders, prompt);
                 });
             });
 
             document.body.append(button);
-            // sidebar.parentNode.insertBefore(foldersWrapper, sidebar);
         }
     });
     
