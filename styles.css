@@ -34,7 +34,7 @@
     .db-toggle-folder-wrapper {
         height: 30px;
         width: 20px;
-        background: #171717;
+        /* background: #171717; */
         position: absolute;
         left: -20px;
         top: 20px;

@@ -367,7 +367,7 @@ function waitForSidebarAndInjectButton() {
         
         const toggleFolderWrapper = document.createElement('div');
         toggleFolderWrapper.id = 'db-toggle-folder-wrapper'
-        toggleFolderWrapper.className = 'db-toggle-folder-wrapper'
+        toggleFolderWrapper.className = 'db-toggle-folder-wrapper pointer'
         toggleFolderWrapper.addEventListener('click', () => {
             foldersWrapper.classList.toggle('visible');
         });
