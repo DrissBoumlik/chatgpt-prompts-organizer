@@ -34,7 +34,7 @@ function showFolderPicker(folders, callback) {
     title.textContent = 'Choose Folder';
     modal.appendChild(title);
 
-    folders.forEach(folder => {
+    folders.folders.forEach(folder => {
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.setAttribute('data-folder-name', folder.folderName);
@@ -418,6 +418,10 @@ function injectAddToFolderButton() {
                 e.stopPropagation();
                 
                 url = window.location.href;
+                if (! pattern.test(url)) {
+                    alert("Can't add an empty prompt to folders!");
+                    return;
+                }
                 chrome.storage.local.get(['folders'], (data) => {
                     let folders = data.folders || { hidden: false, folders: []};
                     const prompt = {
