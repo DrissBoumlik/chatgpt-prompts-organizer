@@ -106,7 +106,7 @@ function observeSidebarPrompts(sidebar) {
                 e.stopPropagation();
 
                 chrome.storage.local.get(['folders'], (data) => {
-                    let folders = data.folders || [];
+                    let folders = data.folders || { hidden: false, folders: []};
                     const prompt = {
                         name: item.textContent.replace('➕', '').trim(),
                         link: item.getAttribute('href'),
@@ -125,13 +125,46 @@ function observeSidebarPrompts(sidebar) {
 
 function renderFolders() {
 
-    const container = document.getElementById('db-folders');
     chrome.storage.local.get(['folders'], (result) => {
-        const folders = result.folders || [];
+        const folders = result.folders || { hidden: false, folders: []};
 
-        container.innerHTML = ''; // Clear existing
+        document.getElementById('db-prompt-folder-btn')?.remove();
+        const button = document.createElement('button');
+        button.id = 'db-prompt-folder-btn';
+        button.textContent = 'New Folder ➕';
+        button.addEventListener('click', () => {
+            // Show prompt to enter folder name
+            showFolderModal();
+        });
 
-        folders.forEach(folder => {
+        document.getElementById('db-folder-wrapper')?.remove();
+        const foldersWrapper = document.createElement('div');
+        foldersWrapper.innerHTML = '';
+
+        foldersWrapper.id = 'db-folder-wrapper';
+        foldersWrapper.className = `db-folder-wrapper ${ folders.hidden ? '' : 'visible'}`;
+        console.log(folders);
+        
+        const toggleFolderWrapper = document.createElement('div');
+        toggleFolderWrapper.id = 'db-toggle-folder-wrapper'
+        toggleFolderWrapper.className = 'db-toggle-folder-wrapper pointer'
+        toggleFolderWrapper.addEventListener('click', () => {
+            foldersWrapper.classList.toggle('visible');
+            chrome.storage.local.get(['folders'], (result) => {
+                let folders = result.folders || { hidden: false, folders: []};
+                folders.hidden = ! foldersWrapper.classList.contains('visible');
+                syncFolders(folders);
+            });
+        });
+
+        // 🆕 Show folders with prompts below
+        const container = foldersWithPromptsContainer = document.createElement('div');
+        foldersWithPromptsContainer.id = 'db-folders';
+        foldersWrapper.append(toggleFolderWrapper, button, foldersWithPromptsContainer);
+        // sidebar.parentNode.insertBefore(foldersWrapper, sidebar);
+        document.body.appendChild(foldersWrapper);
+
+        folders.folders.forEach(folder => {
             const folderDiv = document.createElement('div');
             folderDiv.className = 'db-folder-item-container';
             
@@ -153,8 +186,8 @@ function renderFolders() {
                     return;
                 }
                 chrome.storage.local.get(['folders'], (result) => {
-                    let folders = result.folders || [];
-                    const folder = folders.find(f => f.folderName === folderName);
+                    let folders = result.folders || { hidden: false, folders: []};
+                    const folder = folders.folders.find(f => f.folderName === folderName);
                     showFolderModal(folder.folderName, folder.color, folderName);
                 });
             });
@@ -168,8 +201,8 @@ function renderFolders() {
                 }
                 
                 chrome.storage.local.get(['folders'], (result) => {
-                    let folders = result.folders || [];
-                    folders = folders.filter(f => f.folderName !== folder.folderName);
+                    let folders = result.folders || { hidden: false, folders: []};
+                    folders.folders = folders.folders.filter(f => f.folderName !== folder.folderName);
                     syncFolders(folders);
                 });
             });
@@ -202,8 +235,8 @@ function renderFolders() {
                     }
                     // Remove prompt from folder
                     chrome.storage.local.get(['folders'], (result) => {
-                        let folders = result.folders || [];
-                        folders.map((f) => {
+                        let folders = result.folders || { hidden: false, folders: []};
+                        folders.folders.map((f) => {
                             if (f.folderName === folder.folderName) {
                                 f.prompts = f.prompts.filter(p => p.link !== prompt.link);
                                 syncFolders(folders);
@@ -249,9 +282,9 @@ function renderFolders() {
 
 function addFolderIfNotExists(folderName, color, oldValue = null) {
     chrome.storage.local.get(['folders'], (result) => {
-        let folders = result.folders || [];
+        let folders = result.folders || { hidden: false, folders: []};
         if (oldValue) {
-            folders = folders.map(f => {
+            folders.folders = folders.folders.map(f => {
                 if (f.folderName === oldValue) {
                     f.folderName = folderName;
                     f.color = color;
@@ -262,15 +295,15 @@ function addFolderIfNotExists(folderName, color, oldValue = null) {
             return;
         }
 
-        if (! folders.find(f => f.folderName === folderName)) {
-            folders.push({ folderName, color, hidden: true, prompts: [] });
+        if (! folders.folders.find(f => f.folderName === folderName)) {
+            folders.folders.push({ folderName, color, hidden: true, prompts: [] });
             syncFolders(folders);
         }
     });
 }
 
 function addPromptToFolder(folderName, prompt, folders) {
-    const folder = folders.find(f => f.folderName === folderName);
+    const folder = folders.folders.find(f => f.folderName === folderName);
     const exists = folder.prompts.some(p => p.link === prompt.link);
     if (! exists) {
         folder.prompts.push({ name: prompt.name, link: prompt.link });
@@ -352,32 +385,7 @@ function waitForSidebarAndInjectButton() {
 
         injectAddToFolderButton();
 
-        const button = document.createElement('button');
-        button.id = 'db-prompt-folder-btn';
-        button.textContent = 'New Folder ➕';
-
-        button.addEventListener('click', () => {
-            // Show prompt to enter folder name
-            showFolderModal();
-        });
-
-        const foldersWrapper = document.createElement('div');
-        foldersWrapper.id = 'db-folder-wrapper';
-        foldersWrapper.className = 'db-folder-wrapper visible';
         
-        const toggleFolderWrapper = document.createElement('div');
-        toggleFolderWrapper.id = 'db-toggle-folder-wrapper'
-        toggleFolderWrapper.className = 'db-toggle-folder-wrapper pointer'
-        toggleFolderWrapper.addEventListener('click', () => {
-            foldersWrapper.classList.toggle('visible');
-        });
-
-        // 🆕 Show folders with prompts below
-        const foldersWithPromptsContainer = document.createElement('div');
-        foldersWithPromptsContainer.id = 'db-folders';
-        foldersWrapper.append(toggleFolderWrapper, button, foldersWithPromptsContainer);
-        // sidebar.parentNode.insertBefore(foldersWrapper, sidebar);
-        document.body.appendChild(foldersWrapper);
 
         // Render them
         renderFolders();
@@ -412,7 +420,7 @@ function injectAddToFolderButton() {
                 
                 url = window.location.href;
                 chrome.storage.local.get(['folders'], (data) => {
-                    let folders = data.folders || [];
+                    let folders = data.folders || { hidden: false, folders: []};
                     const prompt = {
                         name: document.title.trim(),
                         link: url.replace('https://chatgpt.com', ''),
