@@ -143,7 +143,6 @@ function renderFolders() {
 
         foldersWrapper.id = 'db-folder-wrapper';
         foldersWrapper.className = `db-folder-wrapper ${ folders.hidden ? '' : 'visible'}`;
-        console.log(folders);
         
         const toggleFolderWrapper = document.createElement('div');
         toggleFolderWrapper.id = 'db-toggle-folder-wrapper'
