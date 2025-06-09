@@ -90,7 +90,8 @@ function showFolderPicker(folders, callback) {
     });
 }
 
-function observeSidebarPrompts(sidebar) {
+function observeSidebarPrompts() {
+    const sidebar = document.getElementById('history');
     const observer = new MutationObserver(() => {
         const promptItems = sidebar.querySelectorAll('a');
 
@@ -122,6 +123,19 @@ function observeSidebarPrompts(sidebar) {
     observer.observe(sidebar, { childList: true, subtree: true });
 }
 
+function observeMainThread() {
+    
+    const thread = document.querySelector('#main');
+    console.log(thread);
+
+    const observer = new MutationObserver(() => {
+        console.log("main changed");
+        renderFolders();
+        injectAddToFolderButton();
+    });
+
+    observer.observe(thread, { childList: true, subtree: true });
+}
 
 function renderFolders() {
 
@@ -384,13 +398,13 @@ function waitForSidebarAndInjectButton() {
 
         injectAddToFolderButton();
 
-        
-
         // Render them
         renderFolders();
         
         // ✅ Watch for prompt items being added to the sidebar
-        observeSidebarPrompts(sidebar);
+        observeSidebarPrompts();
+        
+        observeMainThread();
 
     }, 500);
 }
@@ -398,42 +412,45 @@ function waitForSidebarAndInjectButton() {
 function injectAddToFolderButton() {
     
     const checkInterval = setInterval(() => {
-        const pageHeader = document.getElementById('page-header');
 
-        if (! pageHeader || document.getElementById('db-add-to-folder-btn')) {
+        let url = window.location.href;
+        const pattern = /^https:\/\/chatgpt\.com\/c\/[a-zA-Z0-9-]+$/;
+
+        if (! pattern.test(url)) {
+            document.getElementById('db-add-to-folder-btn')?.remove();
+            return;
+        }
+
+        if (document.getElementById('db-add-to-folder-btn')) {
             return;
         }
 
         clearInterval(checkInterval);
-        let url = window.location.href;
-        const pattern = /^https:\/\/chatgpt\.com\/c\/[a-zA-Z0-9-]+$/;
 
-        if (pattern.test(url)) {
-            const button = document.createElement('button');
-            button.id = 'db-add-to-folder-btn';
-            button.textContent = '➕'
-            button.title = 'Add to Folder';
-            button.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                url = window.location.href;
-                if (! pattern.test(url)) {
-                    alert("Can't add an empty prompt to folders!");
-                    return;
-                }
-                chrome.storage.local.get(['folders'], (data) => {
-                    let folders = data.folders || { hidden: false, folders: []};
-                    const prompt = {
-                        name: document.title.trim(),
-                        link: url.replace('https://chatgpt.com', ''),
-                    };
-                    addPromptToFolderAndSync(folders, prompt);
-                });
+        const button = document.createElement('button');
+        button.id = 'db-add-to-folder-btn';
+        button.textContent = '➕'
+        button.title = 'Add to Folder';
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            url = window.location.href;
+            if (! pattern.test(url)) {
+                alert("Can't add an empty prompt to folders!");
+                return;
+            }
+            chrome.storage.local.get(['folders'], (data) => {
+                let folders = data.folders || { hidden: false, folders: []};
+                const prompt = {
+                    name: document.title.trim(),
+                    link: url.replace('https://chatgpt.com', ''),
+                };
+                addPromptToFolderAndSync(folders, prompt);
             });
+        });
 
-            document.body.append(button);
-        }
+        document.body.append(button);
     });
     
 }
