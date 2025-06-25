@@ -130,10 +130,8 @@ function observeSidebarPrompts() {
 function observeMainThread() {
     
     const thread = document.querySelector('#main');
-    console.log(thread);
 
     const observer = new MutationObserver(() => {
-        console.log("main changed");
         renderFolders();
         injectAddToFolderButton();
     });
