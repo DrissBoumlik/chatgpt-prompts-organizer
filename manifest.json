@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "ChatGPT Folder Organizer",
+  "name": "ChatGPT Prompts Organizer",
   "version": "1.0",
   "description": "A Chrome extension to organize your ChatGPT prompts into folders.",
   "permissions": ["storage", "scripting", "tabs"],
