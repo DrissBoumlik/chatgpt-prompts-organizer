@@ -178,7 +178,10 @@ function renderFolders() {
             // 🆕 Show folders with prompts below
             const container = foldersWithPromptsContainer = document.createElement('div');
             foldersWithPromptsContainer.id = 'db-folders';
-            foldersWrapper.append(foldersWithPromptsContainer);
+            const folderContainerParent = document.createElement('div');
+            folderContainerParent.id = 'db-folders-container'
+            folderContainerParent.append(foldersWithPromptsContainer);
+            foldersWrapper.append(folderContainerParent);
             folders.folders.forEach(folder => {
                 const folderDiv = document.createElement('div');
                 folderDiv.className = 'db-folder-item-container';

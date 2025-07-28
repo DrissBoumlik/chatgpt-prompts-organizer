@@ -48,6 +48,12 @@
         }
     }
 }
+
+#db-folders-container {
+    max-height: 500px;
+    overflow-y: scroll;
+}
+
 #db-folders {
     margin-top: 5px;
     display: flex;
