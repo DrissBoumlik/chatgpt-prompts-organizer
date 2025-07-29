@@ -47,18 +47,56 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
+.actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+  gap: 5px
+}
+
 button {
-  background-color: #10b981;
   color: #ffffff;
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.95rem;
-  margin-top: 1rem;
   transition: background-color 0.2s;
 }
 
-button:hover {
-  background-color: #059669;
+
+.save-button {
+  background-color: #10b981;
+  &:hover {
+    background-color: #059669;
+  }
+}
+
+.backup-button {
+  background-color: #3b82f6;
+  &:hover {
+    background-color: #1c6bea;
+  }
+}
+
+.restore-button {
+  display: inline-block;
+  background-color: #f59e0b;
+  color: #ffffff;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: background-color 0.2s;
+  text-align: center;
+  &:hover {
+    background-color: #d78c0a;
+  }
+  
+  label {
+    padding: 0.5rem 1rem;
+    margin: 0 !important;
+    cursor: pointer;
+  }
 }

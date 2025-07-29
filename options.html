@@ -9,9 +9,16 @@
 <body>
     <div class="container">
         <h1>Folders data</h1>
-        <label for="folders">Folders JSON:</label>
+        <label for="folders" style="display: none;">Folders JSON:</label>
         <textarea id="folders" placeholder="No folders found"></textarea>
-        <button id="save-button">Save Changes</button>
+        <div class="actions">
+          <button id="save-button" class="save-button">Save Changes</button>
+          <button id="backup-button" class="backup-button">Backup</button>
+          <button class="restore-button">
+            <label for="restore-backup">Upload JSON</label>
+            <input type="file" id="restore-backup" accept=".json" style="display: none;" />
+          </button>
+        </div>
     </div>
 </body>
 </html>
