@@ -9,6 +9,12 @@ function injectStyles() {
         });
 }
 
+function getFoldersOrDefault(foldersWrapper) {
+    return (Array.isArray(foldersWrapper?.folders)
+            ? foldersWrapper
+            : { hidden: true, folders: [] });
+}
+
 function syncFolders(folders) {
     chrome.storage.local.set({ folders }, () => {
         renderFolders();
@@ -107,7 +113,7 @@ function observeSidebarPrompts() {
                 e.stopPropagation();
 
                 chrome.storage.local.get(['folders'], (data) => {
-                    let folders = data.folders || { hidden: true, folders: []};
+                    let folders = getFoldersOrDefault(data?.folders);
                     if (folders?.folders?.length === 0) {
                         alert('You need to create a folder first!')
                         return;
@@ -142,7 +148,7 @@ function observeMainThread() {
 function renderFolders() {
 
     chrome.storage.local.get(['folders'], (result) => {
-        const folders = result.folders || { hidden: true, folders: []};
+        let folders = getFoldersOrDefault(result?.folders);
 
         document.getElementById('db-prompt-folder-btn')?.remove();
         const button = document.createElement('button');
@@ -166,7 +172,7 @@ function renderFolders() {
         toggleFolderWrapper.addEventListener('click', () => {
             foldersWrapper.classList.toggle('visible');
             chrome.storage.local.get(['folders'], (result) => {
-                let folders = result.folders || { hidden: true, folders: []};
+                let folders = getFoldersOrDefault(result?.folders);
                 folders.hidden = ! foldersWrapper.classList.contains('visible');
                 syncFolders(folders);
             });
@@ -204,7 +210,7 @@ function renderFolders() {
                         return;
                     }
                     chrome.storage.local.get(['folders'], (result) => {
-                        let folders = result.folders || { hidden: true, folders: []};
+                        let folders = getFoldersOrDefault(result?.folders);
                         const folder = folders.folders.find(f => f.folderName === folderName);
                         showFolderModal(folder.folderName, folder.color, folderName);
                     });
@@ -219,7 +225,7 @@ function renderFolders() {
                     }
                     
                     chrome.storage.local.get(['folders'], (result) => {
-                        let folders = result.folders || { hidden: true, folders: []};
+                        let folders = getFoldersOrDefault(result?.folders);
                         folders.folders = folders.folders.filter(f => f.folderName !== folder.folderName);
                         syncFolders(folders);
                     });
@@ -253,7 +259,7 @@ function renderFolders() {
                         }
                         // Remove prompt from folder
                         chrome.storage.local.get(['folders'], (result) => {
-                            let folders = result.folders || { hidden: true, folders: []};
+                            let folders = getFoldersOrDefault(result?.folders);
                             folders.folders.map((f) => {
                                 if (f.folderName === folder.folderName) {
                                     f.prompts = f.prompts.filter(p => p.link !== prompt.link);
@@ -302,7 +308,7 @@ function renderFolders() {
 
 function addFolderIfNotExists(folderName, color, oldValue = null) {
     chrome.storage.local.get(['folders'], (result) => {
-        let folders = result.folders || { hidden: true, folders: []};
+        let folders = getFoldersOrDefault(result?.folders);
         if (oldValue) {
             folders.folders = folders.folders.map(f => {
                 if (f.folderName === oldValue) {
@@ -448,7 +454,7 @@ function injectAddToFolderButton() {
                 return;
             }
             chrome.storage.local.get(['folders'], (data) => {
-                let folders = data.folders || { hidden: true, folders: []};
+                let folders = getFoldersOrDefault(data?.folders);
                 if (folders?.folders?.length === 0) {
                     alert('You need to create a folder first!');
                     return;
