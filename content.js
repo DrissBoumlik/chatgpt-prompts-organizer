@@ -178,16 +178,27 @@ function renderFolders() {
             });
         });
 
-        foldersWrapper.append(toggleFolderWrapper, button);
+        foldersWrapper.append(toggleFolderWrapper);
         
-        if (folders?.folders?.length !== 0) {
+        const isValidFoldersArray = Array.isArray(folders?.folders) && folders.folders.length > 0;
+
+        const toggleFolderWrapperContainer = document.createElement('div');
+        toggleFolderWrapperContainer.id = 'db-folder-wrapper-container'
+        toggleFolderWrapperContainer.className = 'db-folder-wrapper-container'
+        toggleFolderWrapperContainer.append(button)
+        if (! isValidFoldersArray) {
+            const noFoldersMessage = document.createElement('div');
+            noFoldersMessage.className = 'no-folders-message';
+            noFoldersMessage.textContent = "📂 No folders yet. Create one to get started!";
+            toggleFolderWrapperContainer.appendChild(noFoldersMessage);
+        } else {
             // 🆕 Show folders with prompts below
             const container = foldersWithPromptsContainer = document.createElement('div');
             foldersWithPromptsContainer.id = 'db-folders';
             const folderContainerParent = document.createElement('div');
             folderContainerParent.id = 'db-folders-container'
             folderContainerParent.append(foldersWithPromptsContainer);
-            foldersWrapper.append(folderContainerParent);
+            toggleFolderWrapperContainer.append(folderContainerParent);
             folders.folders.forEach(folder => {
                 const folderDiv = document.createElement('div');
                 folderDiv.className = 'db-folder-item-container';
@@ -297,6 +308,8 @@ function renderFolders() {
                 container.appendChild(folderDiv);
             });
         }
+
+        foldersWrapper.append(toggleFolderWrapperContainer);
         
         // sidebar.parentNode.insertBefore(foldersWrapper, sidebar);
         document.body.appendChild(foldersWrapper);

@@ -10,43 +10,49 @@
 }
 
 .db-folder-wrapper {
-    /* width: calc(100% - 15px); */
-    display: flex;
-    flex-direction: column;
-    /* gap: 5px; */
-    /* margin: 10px auto 0; */
-    
     background-color: #171717;
     width: 280px;
     position: fixed;
     right: 0;
     top: 50%;
-    padding: 5px;
-    border-radius: 5px;
-    border: 1px solid #3c3c3c;
-    
     transform: translate(100%, -50%);
     &.visible {
         transform: translate(0%, -50%);
     }
     
     .db-toggle-folder-wrapper {
-        /* background: #171717; */
         position: absolute;
         &:before {
-            content: '';
-            border: 3px solid #fff;
-            border-bottom-color: transparent;
-            border-right-color: transparent;
-            transform: rotate(-45deg);
-            height: 15px;
-            width: 15px;
+            content: 'Folders';
+            transform: rotate(-90deg);
             display: block;
             position: absolute;
-            left: -15px;
-            top: 7.5px;
+            left: -40px;
+            top: 30px;
+            color: #171717;
+            background-color: #1da484;
+            padding: 0 5px 5px;
+            border-radius: 5px 5px 0 0;
         }
     }
+    
+    .db-folder-wrapper-container {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        border: 1px solid #3c3c3c;
+        border-radius: 5px;
+        padding: 5px;
+        position: relative;
+        background-color: black;
+    }
+}
+
+.no-folders-message {
+    padding: 5px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
 }
 
 #db-folders-container {
@@ -168,7 +174,7 @@
     border-radius: 0.5rem;
     padding: 1rem;
     width: 300px;
-    max-height: 300px;
+    max-height: 500px;
     overflow-y: auto;
 }
 .db-folder-list-modal-header {
