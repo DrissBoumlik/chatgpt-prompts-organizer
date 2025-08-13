@@ -10,7 +10,7 @@
 }
 
 .db-folder-wrapper {
-    background-color: #171717;
+    /* background-color: #171717; */
     width: 280px;
     position: fixed;
     right: 0;
@@ -58,10 +58,39 @@
 #db-folders-container {
     max-height: 500px;
     overflow-y: scroll;
+    --shadow-color: #ffffff55;
+    --shadow-size: 15px;
+    background-position-y: var(--shadow-offset);
+    background-size: 100% calc(100% - var(--shadow-offset));
+    
+    animation: scroll-shadows cubic-bezier(.25,.85,.8,.22);;
+    animation-timeline: scroll(self);
+    animation-range: 0 100%;
+    background-image: linear-gradient(
+        var(--shadow-color) 0%,
+        transparent calc((var(--scroll)) * var(--shadow-size)),
+        transparent calc(100% - var(--shadow-size) * (1 - var(--scroll))),
+        var(--shadow-color) 100%
+    );
 }
 
+@property --scroll {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;  
+}
+
+@keyframes scroll-shadows {
+  /* Sets the shadow-color only if the element is scrollable */
+  from, to { --shadow-color: #FFF9; }
+  to {
+    --scroll: 1;
+  }
+}
+
+
 #db-folders {
-    margin-top: 5px;
+    /* margin-top: 5px; */
     display: flex;
     flex-direction: column;
     gap: 3px;
