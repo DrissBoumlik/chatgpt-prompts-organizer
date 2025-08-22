@@ -215,7 +215,7 @@ function renderFolders() {
                 // Folder header with toggle
                 const folderItem = document.createElement('div');
                 folderItem.className = 'db-folder-list-item';
-                folderItem.style.backgroundColor = folder.color || '#262626';
+                folderItem.style.backgroundColor = `rgb(from ${folder.color || '#262626'} r g b / 0.5)`;
 
                 const title = document.createElement('span');
                 title.className = "pointer w-100"
