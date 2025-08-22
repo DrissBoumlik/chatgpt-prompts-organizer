@@ -126,6 +126,15 @@ function observeSidebarPrompts() {
                 });
             });
 
+            const promptText = item.innerText;
+            chrome.storage.local.get(['folders'], (data) => {
+                const group = data.folders.folders.find(group =>
+                    group.prompts.some(prompt => prompt.name === promptText)
+                );
+                if (group) {
+                    item.style.backgroundColor = `rgb(from ${group.color} r g b / 0.5)`
+                }
+            });
             item.appendChild(folderBtn);
         });
     });
